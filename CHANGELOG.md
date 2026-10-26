@@ -2,8 +2,8 @@
 
 ## 0.1.0 (unreleased)
 
-First release. Extracted from the Bifrost framework's SurrealDB adapter
-(history and per-file provenance in `PROVENANCE.md`), made framework-free:
+First release. Extracted from the Bifrost framework's SurrealDB adapter and
+made framework-free:
 supervised connection, sessions, transactions with honest outcomes,
 provisioning, migrations, graph edges, Ash data layer.
 

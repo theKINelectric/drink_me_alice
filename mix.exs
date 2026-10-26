@@ -42,7 +42,7 @@ defmodule DrinkMeAlice.MixProject do
   defp package do
     [
       licenses: ["MIT"],
-      files: ~w(lib mix.exs README.md CHANGELOG.md PROVENANCE.md LICENSE),
+      files: ~w(lib mix.exs README.md CHANGELOG.md LICENSE),
       links: %{"GitHub" => "https://github.com/theKINelectric/drink_me_alice"}
     ]
   end
