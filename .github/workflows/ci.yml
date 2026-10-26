@@ -1,0 +1,70 @@
+# CI for the qualified combination only (audit A-08): the runtime this
+# library is developed on (Elixir 1.20 / OTP 29) and the server it is
+# qualified against (SurrealDB 3.0.5). Other runtimes are deliberately
+# not implied.
+#
+# The live job downloads the official v3.0.5 linux-amd64 release
+# tarball, verifies it against the committed SHA-256 below, runs the
+# explicit downloaded path (never a PATH lookup), and sets
+# SURREAL_REQUIRE_QUALIFIED=1 so a wrong, unreadable or missing server
+# FAILS the job instead of excluding the live suite (review R-05).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  SURREAL_VERSION: "3.0.5"
+  SURREAL_SHA256: "48dbeba4896765f33e07acc25224073f0850c190872052b917ebda1f7b4375cb"
+
+jobs:
+  offline:
+    name: "Offline suite (no server)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.20"
+          otp-version: "29"
+      - run: mix deps.get
+      - run: mix format --check-formatted
+      - run: mix compile --warnings-as-errors
+      - run: mix test --exclude live
+
+  live-qualified:
+    name: "Live suite against SurrealDB 3.0.5"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.20"
+          otp-version: "29"
+      - run: mix deps.get
+      - name: Download and verify the qualified server binary
+        run: |
+          curl -sSfL -o surreal.tgz \
+            "https://github.com/surrealdb/surrealdb/releases/download/v${SURREAL_VERSION}/surreal-v${SURREAL_VERSION}.linux-amd64.tgz"
+          echo "${SURREAL_SHA256}  surreal.tgz" | sha256sum -c -
+          tar -xzf surreal.tgz
+          chmod +x ./surreal
+          ./surreal version
+      - name: Run the live suite (fails if the server is wrong or unusable)
+        run: mix test
+        env:
+          SURREAL_BIN: ${{ github.workspace }}/surreal
+          SURREAL_REQUIRE_QUALIFIED: "1"
+
+  no-ash-consumer:
+    name: "Consumer build without Ash"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1
+        with:
+          elixir-version: "1.20"
+          otp-version: "29"
+      - run: ./scripts/check-no-ash-consumer.sh

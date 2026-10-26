@@ -1,0 +1,6 @@
+# Repo-owned toolchain (2026-09-28 lesson: ambient PATH must never decide
+# the compiler). Enter via `mise x -- mix …`.
+[tools]
+erlang = "28.3.1"
+elixir = "1.20.4-otp-28"
+
